@@ -60,7 +60,42 @@ public class BankingTest {
 		assertEquals("Balance incorrecte !", before0 - amount, myDAO.balanceForCustomer(fromCustomer), 0.001f);
 		assertEquals("Balance incorrecte !", before1 + amount, myDAO.balanceForCustomer(toCustomer), 0.001f);				
 	}
-	
+        
+        @Test(expected = SQLException.class)
+        // solde du compte débité devient négatif
+	public void negativeAmount() throws Exception {
+		int fromCustomer = 0;
+		int toCustomer = 1;
+		float before0 = myDAO.balanceForCustomer(fromCustomer);
+                float amount = before0 + 10.0f;
+		myDAO.bankTransferTransaction(fromCustomer, toCustomer, amount);	
+	}
+
+	@Test
+        // récepteur du transfert inconnu
+	public void transferToUnknow() throws Exception {
+                float amount = 10.0f;
+		int fromCustomer = 0;
+                int toCustomer= -1;                
+		float before = myDAO.balanceForCustomer(fromCustomer);
+                myDAO.bankTransferTransaction(fromCustomer, toCustomer, amount);
+                float after = myDAO.balanceForCustomer(fromCustomer);
+                
+                assertEquals("bug =(", before, after, 0.001f);	
+	}
+        
+        @Test
+        // destinataire du transfert inconnu
+	public void transferFromUnknow() throws Exception {
+                float amount = 10.0f;
+		int fromCustomer = -1;
+                int toCustomer= 1;                
+		float before = myDAO.balanceForCustomer(toCustomer);
+                myDAO.bankTransferTransaction(fromCustomer, toCustomer, amount);
+                float after = myDAO.balanceForCustomer(toCustomer);
+                
+                assertEquals("bug =(", before, after, 0.001f);
+	}
 
 	public static DataSource getDataSource() throws SQLException {
 		org.hsqldb.jdbc.JDBCDataSource ds = new org.hsqldb.jdbc.JDBCDataSource();
